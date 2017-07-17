@@ -13,21 +13,7 @@ import java.util.List;
  * @author riccardodelgratta
  */
 public class Candidato {
-    
-    private String nome;
-    private String chiave;
-    private List<Graduatoria> graduatorie=new ArrayList<>();
-    private String fileOrigine;
 
-    public Candidato(String nome, List<Graduatoria> graduatorie) {
-        this.nome = nome;
-        this.graduatorie = graduatorie;
-    }
-
-    public Candidato() {
-    }
-
-    
     /**
      * @return the nome
      */
@@ -40,6 +26,50 @@ public class Candidato {
      */
     public void setNome(String nome) {
         this.nome = nome;
+    }
+
+    /**
+     * @return the cognome
+     */
+    public String getCognome() {
+        return cognome;
+    }
+
+    /**
+     * @param cognome the cognome to set
+     */
+    public void setCognome(String cognome) {
+        this.cognome = cognome;
+    }
+    
+    private String nomeCompleto;
+    private String nome;
+    private String cognome;
+    private String chiave;
+    private List<Graduatoria> graduatorie=new ArrayList<>();
+    private String fileOrigine;
+
+    public Candidato(String nome, List<Graduatoria> graduatorie) {
+        this.nomeCompleto = nome;
+        this.graduatorie = graduatorie;
+    }
+
+    public Candidato() {
+    }
+
+    
+    /**
+     * @return the nomeCompleto
+     */
+    public String getNomeCompleto() {
+        return nomeCompleto;
+    }
+
+    /**
+     * @param nomeCompleto the nomeCompleto to set
+     */
+    public void setNomeCompleto(String nomeCompleto) {
+        this.nomeCompleto = nomeCompleto;
     }
 
     /**

@@ -28,6 +28,20 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 public class Client {
 
     /**
+     * @return the modo
+     */
+    public int getModo() {
+        return modo;
+    }
+
+    /**
+     * @param modo the modo to set
+     */
+    public void setModo(int modo) {
+        this.modo = modo;
+    }
+
+    /**
      * @return the mapFileGraduatoria
      */
     public Map<String, List<Graduatoria>> getMapFileGraduatoria() {
@@ -49,6 +63,7 @@ public class Client {
 
     private String classiDiConcorso;
     private String nomeDaRicercare;
+    private int modo;
     private Map<String, List> mapClassiScuole = new HashMap();
     private Map<String, List<Graduatoria>> mapFileGraduatoria = new HashMap();
     private Candidato candidato;
@@ -57,7 +72,15 @@ public class Client {
     public static void main(String[] args) {
         Client c = new Client();
         c.checkArgs(args);
+        System.err.println("************* START IGRADO con modo " + c.getModo() + " *************");
+        c.leggiFileEriempiGraduatorie(path, IG);
+        c.init(c.getMapFileGraduatoria(), c.getModo());
+        System.err.println("************* END IGRADO con modo " + c.getModo() + " *************\n\n");
+
+        System.err.println("************* START IIGRADO con modo " + c.getModo() + " *************");
         c.leggiFileEriempiGraduatorie(path, IIG);
+        c.init(c.getMapFileGraduatoria(), c.getModo());
+        System.err.println("************* END IIGRADO con modo " + c.getModo() + " *************\n\n");
 //        System.err.println("************* START *************");
 //        for (Map.Entry entry : c.getMapFileGraduatoria().entrySet()) {
 //            List<Graduatoria> g = (List) entry.getValue();
@@ -70,24 +93,8 @@ public class Client {
 //                }
 //            }
 //        }
-//        System.err.println("************* END *************");
-//        c.mapClassiScuole = c.getGraduatorieDaClassiDiConcorso(c.getMapFileGraduatoria(), c.getClassiDiConcorso());
-//        c.stampaMappaClassiScuole(c.mapClassiScuole);
-        List<Candidato> temp = c.creaListaCandidati(c.getMapFileGraduatoria());
-        System.err.println("\nNome\tScuola\tClasse Di Concorso\tPosto\tPunteggio");
-        for (Candidato candidato : temp) {
-            //System.err.println("\ncandidato -" + candidato.getNome() + "-");
-            if (candidato.getNome() != null && candidato.getNome().equalsIgnoreCase(c.nomeDaRicercare)) {
-                System.err.println("\nNome " + c.getNomeDaRicercare() + " ha le seguenti posizioni:");
-                for (Graduatoria grad : candidato.getGraduatorie()) {
-                    System.err.println(c.getNomeDaRicercare()+" ("+candidato.getChiave()+")" + "\t" + grad.getFileOrigine().replaceAll(path,"").replaceAll(IIG, "").replaceAll(IG, "")
-                            .replaceAll("/", "") + "\t" + grad.getCodClasseDiConcorso() + "\t" + grad.getPosto() + "\t" + grad.getPunteggio());
-                    // System.err.println("\t\tClasse di concorso " + grad.getCodClasseDiConcorso() + "\t\tPosto " + grad.getPosto() + "\tPunteggio " + grad.getPunteggio());
-
-                }
-            }
-
-        }
+//       
+//       
 
     }
 
@@ -125,7 +132,9 @@ public class Client {
                     candidato = new Candidato();
                     temp.put(chiave, candidato);
                     candidato.setChiave(chiave);
-                    candidato.setNome(g.getCognome() + "#" + g.getNome());
+                    candidato.setNomeCompleto(g.getCognome() + "#" + g.getNome());
+                    candidato.setNome(g.getNome());
+                    candidato.setCognome(g.getCognome());
                 } else {
                     //System.err.println("TROVATO " + chiave);
                     candidato = temp.get(chiave);
@@ -140,9 +149,7 @@ public class Client {
 
             }
         }
-        for (Candidato candidato1 : candidati) {
-            //System.err.println("\ncandidatoXX -" + candidato1.getNome() + "-");
-        }
+
         return candidati;
     }
 
@@ -196,13 +203,22 @@ public class Client {
         return tempMapClassiScuole;
     }
 
-    public void init() {
+    public void init(Map<String, List<Graduatoria>> grads, int modo) {
+        if (modo == 0) {
+            mapClassiScuole = getGraduatorieDaClassiDiConcorso(grads, getClassiDiConcorso());
+            stampaMappaClassiScuole(mapClassiScuole);
+        } else if (modo >= 1 && modo <= 3) {
+            List<Candidato> temp = creaListaCandidati(grads);
+            stampaNomecompletoGraduatorie(temp, modo);
+
+        }
 
     }
 
     public void leggiFileEriempiGraduatorie(String path, String cartella) {
         //Get file from resources folder
         String message;
+        boolean debug = false;
 
         String routine = "leggiFileEriempiGraduatorie";
 
@@ -212,11 +228,15 @@ public class Client {
         Map<String, List<Graduatoria>> tempMap = new HashMap<>();
 
         File[] listOfFiles = folder.listFiles();
+        message = String.format("Leggo cartella -%s- in routine -%s-\n\n", folder, routine);
+        Logger.getLogger(CLASS_NAME).log(Level.FINE, message);
         for (File listOfFile : listOfFiles) {
             if (listOfFile.isFile()) {
                 nomeFile = listOfFile.getName();
-                message = String.format("Leggo file -%s- in routine -%s-", nomeFile, routine);
-                Logger.getLogger(CLASS_NAME).log(Level.INFO, message);
+                if (debug) {
+                    message = String.format("Leggo file -%s- in routine -%s-", nomeFile, routine);
+                    Logger.getLogger(CLASS_NAME).log(Level.FINE, message);
+                }
                 try {
                     tempMap = riempiGraduatoriaDaFile(path + cartella + "/" + nomeFile);
 
@@ -593,11 +613,21 @@ public class Client {
         int i = 0;
         for (String arg : args) {
             switch (arg) {
-                case "-c":
+                case "-g":
                     setClassiDiConcorso(args[i + 1]);
+                    setModo(0);
+                    break;
+                case "-nc":
+                    setNomeDaRicercare(args[i + 1]);
+                    setModo(1);
                     break;
                 case "-n":
                     setNomeDaRicercare(args[i + 1]);
+                    setModo(2);
+                    break;
+                case "-c":
+                    setNomeDaRicercare(args[i + 1]);
+                    setModo(3);
                     break;
             }
             i++;
@@ -672,5 +702,56 @@ public class Client {
      */
     public void setNomeDaRicercare(String nomeDaRicercare) {
         this.nomeDaRicercare = nomeDaRicercare;
+    }
+
+    private void stampaNomecompletoGraduatorie(List<Candidato> temp, int modo) {
+        System.err.println("\nNome\tScuola\tClasse Di Concorso\tPosto\tPunteggio");
+        if (modo == 1) {
+            for (Candidato candidato : temp) { //nome e cognome
+                //System.err.println("\ncandidato -" + candidato.getNome() + "-");
+                if (candidato.getNomeCompleto() != null && candidato.getNomeCompleto().equalsIgnoreCase(nomeDaRicercare)) {
+                    System.err.println("\nCognome e nome " + getNomeDaRicercare() + " ha le seguenti posizioni:");
+                    for (Graduatoria grad : candidato.getGraduatorie()) {
+                        System.err.println(getNomeDaRicercare() + " (" + candidato.getChiave() + ")" + "\t" + grad.getFileOrigine().replaceAll(path, "").replaceAll(IIG, "").replaceAll(IG, "")
+                                .replaceAll("/", "") + "\t" + grad.getCodClasseDiConcorso() + "\t" + grad.getPosto() + "\t" + grad.getPunteggio());
+                        // System.err.println("\t\tClasse di concorso " + grad.getCodClasseDiConcorso() + "\t\tPosto " + grad.getPosto() + "\tPunteggio " + grad.getPunteggio());
+
+                    }
+                }
+
+            }
+        }
+
+        if (modo == 2) { //nome
+            for (Candidato candidato : temp) {
+                //System.err.println("\ncandidato -" + candidato.getNome() + "-");
+                if (candidato.getNome() != null && candidato.getNome().equalsIgnoreCase(nomeDaRicercare)) {
+                    System.err.println("\nNome " + getNomeDaRicercare() + " ha le seguenti posizioni:");
+                    for (Graduatoria grad : candidato.getGraduatorie()) {
+                        System.err.println(candidato.getNomeCompleto() + " (" + candidato.getChiave() + ")" + "\t" + grad.getFileOrigine().replaceAll(path, "").replaceAll(IIG, "").replaceAll(IG, "")
+                                .replaceAll("/", "") + "\t" + grad.getCodClasseDiConcorso() + "\t" + grad.getPosto() + "\t" + grad.getPunteggio());
+                        // System.err.println("\t\tClasse di concorso " + grad.getCodClasseDiConcorso() + "\t\tPosto " + grad.getPosto() + "\tPunteggio " + grad.getPunteggio());
+
+                    }
+                }
+
+            }
+        }
+
+        if (modo == 3) { //cognome
+            for (Candidato candidato : temp) {
+                //System.err.println("\ncandidato -" + candidato.getNome() + "-");
+                if (candidato.getCognome() != null && candidato.getCognome().equalsIgnoreCase(nomeDaRicercare)) {
+                    System.err.println("\nCognome " + getNomeDaRicercare() + " ha le seguenti posizioni:");
+                    for (Graduatoria grad : candidato.getGraduatorie()) {
+                        System.err.println(candidato.getNomeCompleto() + " (" + candidato.getChiave() + ")" + "\t" + grad.getFileOrigine().replaceAll(path, "").replaceAll(IIG, "").replaceAll(IG, "")
+                                .replaceAll("/", "") + "\t" + grad.getCodClasseDiConcorso() + "\t" + grad.getPosto() + "\t" + grad.getPunteggio());
+                        // System.err.println("\t\tClasse di concorso " + grad.getCodClasseDiConcorso() + "\t\tPosto " + grad.getPosto() + "\tPunteggio " + grad.getPunteggio());
+
+                    }
+                }
+
+            }
+        }
     }
 }

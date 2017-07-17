@@ -10,7 +10,7 @@
                 <goal>org.codehaus.mojo:exec-maven-plugin:1.2.1:exec</goal>
             </goals>
             <properties>
-                <exec.args>-classpath %classpath it.cnr.ilc.gestoregraduatorie.Client -n BASILE#DANIELA</exec.args>
+                <exec.args>-classpath %classpath it.cnr.ilc.gestoregraduatorie.Client -g A059</exec.args>
                 <exec.executable>java</exec.executable>
             </properties>
         </action>
