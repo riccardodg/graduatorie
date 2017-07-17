@@ -5,6 +5,7 @@
  */
 package it.cnr.ilc.gestoregraduatorie;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -14,7 +15,9 @@ import java.util.List;
 public class Candidato {
     
     private String nome;
-    private List<Graduatoria> graduatorie;
+    private String chiave;
+    private List<Graduatoria> graduatorie=new ArrayList<>();
+    private String fileOrigine;
 
     public Candidato(String nome, List<Graduatoria> graduatorie) {
         this.nome = nome;
@@ -51,6 +54,34 @@ public class Candidato {
      */
     public void setGraduatorie(List<Graduatoria> graduatorie) {
         this.graduatorie = graduatorie;
+    }
+
+    /**
+     * @return the chiave
+     */
+    public String getChiave() {
+        return chiave;
+    }
+
+    /**
+     * @param chiave the chiave to set
+     */
+    public void setChiave(String chiave) {
+        this.chiave = chiave;
+    }
+
+    /**
+     * @return the fileOrigine
+     */
+    public String getFileOrigine() {
+        return fileOrigine;
+    }
+
+    /**
+     * @param fileOrigine the fileOrigine to set
+     */
+    public void setFileOrigine(String fileOrigine) {
+        this.fileOrigine = fileOrigine;
     }
     
     
