@@ -57,7 +57,10 @@ public class Client {
 
     public String CLASS_NAME = Client.class.getName();
 
-    public static String path = "/Users/riccardodelgratta/Desktop/grad/";
+    public static String path = "";
+    //public static String path = "/home/riccardo/Dropbox/2017/POLIS_SCUOLA/GRADUATORIE/";
+
+    //public static String path = "/tmp/grad/";
     public static String IG = "IGRADO";
     public static String IIG = "IIGRADO";
 
@@ -70,6 +73,8 @@ public class Client {
     private List<Candidato> candidati;
 
     public static void main(String[] args) {
+        path = "/opt/git/graduatorie/GestoreGraduatorie/src/main/resources/2017/";
+        //path="/home/riccardo/Dropbox/2017/POLIS_SCUOLA/GRADUATORIE/";
         Client c = new Client();
         c.checkArgs(args);
         System.err.println("************* START IGRADO con modo " + c.getModo() + " *************");
@@ -168,7 +173,7 @@ public class Client {
         Map<String, List> tempMapClassiScuole = new HashMap();
 
         List<String> files = new ArrayList<>();
-        //System.err.println("************* START *************");
+        System.err.println("\n\n************* START *************");
         for (String classeDacercare : classi.split(",")) {
             message = String.format("Cerco la classe -%s- in routine -%s-", classeDacercare, routine);
             Logger.getLogger(CLASS_NAME).log(Level.INFO, message);
@@ -198,7 +203,7 @@ public class Client {
 
             files = new ArrayList<>();
         }
-        //System.err.println("************* END *************");
+        System.err.println("\n************* END *************\n\n");
 
         return tempMapClassiScuole;
     }
@@ -243,9 +248,11 @@ public class Client {
                 } catch (Exception e) {
                     message = String.format("Errore nel leggere -%s- in routine -%s-. Messaggio -%s-", nomeFile, routine, e.getMessage());
                     Logger.getLogger(CLASS_NAME).log(Level.SEVERE, message);
+                    //e.printStackTrace();
 
                 }
             }
+            //System.err.println("grad "+tempMap);
             getMapFileGraduatoria().putAll(tempMap);
 
         }
@@ -334,19 +341,19 @@ public class Client {
 
                     if (c == 1) { //DescrClasseDiConcorso
                         DescrClasseDiConcorso = cell.getStringCellValue().trim();
-                        //System.err.println("FILE " + file+ " classeDacercare "+ DescrClasseDiConcorso);
+                        //System.err.println("FILE " + file+ " DescrClasseDiConcorso "+ DescrClasseDiConcorso);
                         grad.setDescrClasseDiConcorso(DescrClasseDiConcorso);
                     }
 //                    
                     if (c == 2) { //TipoPosto
                         TipoPosto = cell.getStringCellValue().trim();
-                        //System.err.println("FILE " + file+ " classeDacercare "+ TipoPosto);
+                        //System.err.println("FILE " + file+ " TipoPosto "+ TipoPosto);
                         grad.setTipoPosto(TipoPosto);
                     }
 
                     if (c == 3) { //CodTipoPosto
                         CodTipoPosto = cell.getStringCellValue().trim();
-                        //System.err.println("FILE " + file+ " classeDacercare "+ CodTipoPosto);
+                        //System.err.println("FILE " + file+ " CodTipoPosto "+ CodTipoPosto);
                         grad.setCodTipoPosto(CodTipoPosto);
                     }
 //                    
@@ -394,6 +401,7 @@ public class Client {
 //                    
                     if (c == 10) { //Punteggio -> DOUBLE
                         String temp = cell.getStringCellValue().trim();
+                        //System.err.println("FILE " + file+ " Punteggio "+ temp);
                         if (temp.isEmpty()) {
                             Punteggio = 0.0;
                         } else {
@@ -489,10 +497,16 @@ public class Client {
                     }
                     if (c == 25) { //NumFigli -> INT
                         String temp = cell.getStringCellValue().trim();
+                        //System.err.println("FILE " + file+ " NumFigli "+ temp);
                         if (temp.isEmpty()) {
                             NumFigli = 0;
                         } else {
-                            NumFigli = Integer.parseInt(temp);
+                            try {
+                                NumFigli = Integer.parseInt(temp);
+                            } catch (Exception f) {
+                                NumFigli = 0;
+
+                            }
                         }
                         //System.err.println("FILE " + file+ " NumFigli "+ NumFigli);
                         grad.setNumFigli(NumFigli);
@@ -619,6 +633,7 @@ public class Client {
                     break;
                 case "-nc":
                     setNomeDaRicercare(args[i + 1]);
+                    //System.err.println("NOME "+args[i + 1]);
                     setModo(1);
                     break;
                 case "-n":
@@ -705,32 +720,65 @@ public class Client {
     }
 
     private void stampaNomecompletoGraduatorie(List<Candidato> temp, int modo) {
-        System.err.println("\nNome\tScuola\tClasse Di Concorso\tPosto\tPunteggio");
+        HashMap<String, List<String>> pivot = new HashMap<>();
+        System.err.println("\nNome\tScuola\tClasse Di Concorso\tDescr Classe Di Concorso\tPosto\tPunteggio");
         if (modo == 1) {
             for (Candidato candidato : temp) { //nome e cognome
+
                 //System.err.println("\ncandidato -" + candidato.getNome() + "-");
                 if (candidato.getNomeCompleto() != null && candidato.getNomeCompleto().equalsIgnoreCase(nomeDaRicercare)) {
-                    System.err.println("\nCognome e nome " + getNomeDaRicercare() + " ha le seguenti posizioni:");
+
+                    //System.err.println("\nCognome e nome " + getNomeDaRicercare() + " ha le seguenti posizioni:");
                     for (Graduatoria grad : candidato.getGraduatorie()) {
+                        List list = new ArrayList();
                         System.err.println(getNomeDaRicercare() + " (" + candidato.getChiave() + ")" + "\t" + grad.getFileOrigine().replaceAll(path, "").replaceAll(IIG, "").replaceAll(IG, "")
-                                .replaceAll("/", "") + "\t" + grad.getCodClasseDiConcorso() + "\t" + grad.getPosto() + "\t" + grad.getPunteggio());
+                                .replaceAll("/", "") + "\t" + grad.getCodClasseDiConcorso() + "\t" + grad.getDescrClasseDiConcorso() + "\t" + grad.getPosto() + "\t" + grad.getPunteggio());
                         // System.err.println("\t\tClasse di concorso " + grad.getCodClasseDiConcorso() + "\t\tPosto " + grad.getPosto() + "\tPunteggio " + grad.getPunteggio());
+                        String key = grad.getCodClasseDiConcorso() + "\t" + grad.getDescrClasseDiConcorso();
+                        String value = getNomeDaRicercare() + " (" + candidato.getChiave() + ")" + "\t" + grad.getFileOrigine().replaceAll(path, "").replaceAll(IIG, "").replaceAll(IG, "")
+                                .replaceAll("/", "") + "\t" + grad.getPosto() + "\t" + grad.getPunteggio();
+
+                        if (pivot.containsKey(key)) {
+                            list = pivot.get(key);
+
+                        }
+
+                        list.add(value);
+
+                        // System.err.println(list);
+                        pivot.put(key, list);
 
                     }
                 }
 
             }
+
         }
 
         if (modo == 2) { //nome
             for (Candidato candidato : temp) {
                 //System.err.println("\ncandidato -" + candidato.getNome() + "-");
                 if (candidato.getNome() != null && candidato.getNome().equalsIgnoreCase(nomeDaRicercare)) {
+
                     System.err.println("\nNome " + getNomeDaRicercare() + " ha le seguenti posizioni:");
                     for (Graduatoria grad : candidato.getGraduatorie()) {
+                        List list = new ArrayList();
                         System.err.println(candidato.getNomeCompleto() + " (" + candidato.getChiave() + ")" + "\t" + grad.getFileOrigine().replaceAll(path, "").replaceAll(IIG, "").replaceAll(IG, "")
                                 .replaceAll("/", "") + "\t" + grad.getCodClasseDiConcorso() + "\t" + grad.getPosto() + "\t" + grad.getPunteggio());
                         // System.err.println("\t\tClasse di concorso " + grad.getCodClasseDiConcorso() + "\t\tPosto " + grad.getPosto() + "\tPunteggio " + grad.getPunteggio());
+                        String key = grad.getCodClasseDiConcorso() + "\t" + grad.getDescrClasseDiConcorso();
+                        String value = getNomeDaRicercare() + " (" + candidato.getChiave() + ")" + "\t" + grad.getFileOrigine().replaceAll(path, "").replaceAll(IIG, "").replaceAll(IG, "")
+                                .replaceAll("/", "") + "\t" + grad.getPosto() + "\t" + grad.getPunteggio();
+
+                        if (pivot.containsKey(key)) {
+                            list = pivot.get(key);
+
+                        }
+
+                        list.add(value);
+
+                        // System.err.println(list);
+                        pivot.put(key, list);
 
                     }
                 }
@@ -742,15 +790,40 @@ public class Client {
             for (Candidato candidato : temp) {
                 //System.err.println("\ncandidato -" + candidato.getNome() + "-");
                 if (candidato.getCognome() != null && candidato.getCognome().equalsIgnoreCase(nomeDaRicercare)) {
+
                     System.err.println("\nCognome " + getNomeDaRicercare() + " ha le seguenti posizioni:");
                     for (Graduatoria grad : candidato.getGraduatorie()) {
+                        List list = new ArrayList();
                         System.err.println(candidato.getNomeCompleto() + " (" + candidato.getChiave() + ")" + "\t" + grad.getFileOrigine().replaceAll(path, "").replaceAll(IIG, "").replaceAll(IG, "")
                                 .replaceAll("/", "") + "\t" + grad.getCodClasseDiConcorso() + "\t" + grad.getPosto() + "\t" + grad.getPunteggio());
                         // System.err.println("\t\tClasse di concorso " + grad.getCodClasseDiConcorso() + "\t\tPosto " + grad.getPosto() + "\tPunteggio " + grad.getPunteggio());
+                        String key = grad.getCodClasseDiConcorso() + "\t" + grad.getDescrClasseDiConcorso();
+                        String value = getNomeDaRicercare() + " (" + candidato.getChiave() + ")" + "\t" + grad.getFileOrigine().replaceAll(path, "").replaceAll(IIG, "").replaceAll(IG, "")
+                                .replaceAll("/", "") + "\t" + grad.getPosto() + "\t" + grad.getPunteggio();
 
+                        if (pivot.containsKey(key)) {
+                            list = pivot.get(key);
+
+                        }
+
+                        list.add(value);
+
+                        // System.err.println(list);
+                        pivot.put(key, list);
                     }
                 }
 
+            }
+        }
+        stampaClassiConScuole(pivot);
+    }
+
+    private void stampaClassiConScuole(HashMap<String, List<String>> pivot) {
+        System.err.println("\n\nClasse Di Concorso\tDescr Classe Di Concorso\tNome\tPosto\tPunteggio");
+        for (Map.Entry entry : pivot.entrySet()) {
+            List<String> g = (List) entry.getValue();
+            for (String s : g) {
+                System.err.println(entry.getKey() + "\t" + s);
             }
         }
     }
